@@ -33,11 +33,10 @@ typedef uint64_t uint64;
 // Typemaps to represent const std::vector<TYPE>& arguments as arrays of
 // CSHARPTYPE.
 %define VECTOR_AS_CSHARP_ARRAY(TYPE, CTYPE, CSHARPTYPE)
-%typemap(ctype)    const std::vector<TYPE>&  %{ int length$argnum, CTYPE* %}
-%typemap(imtype)   const std::vector<TYPE>&  %{ int length$argnum, CSHARPTYPE[] %}
 %typemap(cstype)   const std::vector<TYPE>&  %{ CSHARPTYPE[] %}
 %typemap(csin)     const std::vector<TYPE>&  "$csinput.Length, $csinput"
-%typemap(freearg)  const std::vector<TYPE>&  { delete $1; }
+%typemap(imtype)   const std::vector<TYPE>&  %{ int length$argnum, CSHARPTYPE[] %}
+%typemap(ctype, out="CTYPE*")    const std::vector<TYPE>&  %{ int length$argnum, CTYPE* %}
 %typemap(in)       const std::vector<TYPE>&  %{
   $1 = new std::vector<TYPE>;
   $1->reserve(length$argnum);
@@ -45,12 +44,12 @@ typedef uint64_t uint64;
     $1->emplace_back($input[i]);
   }
 %}
+%typemap(freearg)  const std::vector<TYPE>&  { delete $1; }
 // Same, for std::vector<TYPE>
-%typemap(ctype)   std::vector<TYPE>  %{ int length$argnum, CTYPE* %}
-%typemap(imtype)  std::vector<TYPE>  %{ int length$argnum, CSHARPTYPE[] %}
 %typemap(cstype)  std::vector<TYPE>  %{ CSHARPTYPE[] %}
 %typemap(csin)    std::vector<TYPE>  "$csinput.Length, $csinput"
-%typemap(freearg) std::vector<TYPE>  { delete $1; }
+%typemap(imtype)  std::vector<TYPE>  %{ int length$argnum, CSHARPTYPE[] %}
+%typemap(ctype, out="CTYPE*")   std::vector<TYPE>  %{ int length$argnum, CTYPE* %}
 %typemap(in)      std::vector<TYPE>  %{
   $1.clear();
   $1.reserve(length$argnum);
@@ -58,6 +57,7 @@ typedef uint64_t uint64;
     $1.emplace_back($input[i]);
   }
 %}
+%typemap(freearg) std::vector<TYPE>  { delete $1; }
 %enddef // VECTOR_AS_CSHARP_ARRAY
 
 %define MATRIX_AS_CSHARP_ARRAY(TYPE, CTYPE, CSHARPTYPE)
