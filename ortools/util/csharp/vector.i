@@ -45,6 +45,17 @@ typedef uint64_t uint64;
   }
 %}
 %typemap(freearg)  const std::vector<TYPE>&  { delete $1; }
+
+%typemap(csout) const std::vector<Type>& {
+  return $imcall;$excode
+}
+%typemap(out) const std::vector<TYPE>& %{
+  $result = new CTYPE[$1->size()];
+  for(int i=0; i < $1->size(); ++i) {
+    $result[i] = (reinterpret_cast<const CTYPE*>($1->data())[i]);
+  }
+%}
+
 // Same, for std::vector<TYPE>
 %typemap(cstype)  std::vector<TYPE>  %{ CSHARPTYPE[] %}
 %typemap(csin)    std::vector<TYPE>  "$csinput.Length, $csinput"
@@ -58,6 +69,16 @@ typedef uint64_t uint64;
   }
 %}
 %typemap(freearg) std::vector<TYPE>  { delete $1; }
+
+%typemap(csout) std::vector<Type> {
+  return $imcall;$excode
+}
+%typemap(out) std::vector<TYPE> %{
+  $result = new CTYPE[$1->size()];
+  for(int i=0; i < $1->size(); ++i) {
+    $result[i] = (reinterpret_cast<const CTYPE*>($1->data())[i]);
+  }
+%}
 %enddef // VECTOR_AS_CSHARP_ARRAY
 
 %define MATRIX_AS_CSHARP_ARRAY(TYPE, CTYPE, CSHARPTYPE)
@@ -70,12 +91,10 @@ typedef uint64_t uint64;
 %typemap(cstype) const std::vector<std::vector<TYPE> >&  %{ CSHARPTYPE[][] %}
 %typemap(csin)   const std::vector<std::vector<TYPE> >&  "$csinput.GetLength(0), NestedArrayHelper.GetArraySecondSize($csinput), NestedArrayHelper.GetFlatArray($csinput)"
 %typemap(in)     const std::vector<std::vector<TYPE> >&  (std::vector<std::vector<TYPE> > result) %{
-
   result.clear();
   result.resize(len$argnum_1);
 
   TYPE* inner_array = reinterpret_cast<TYPE*>($input);
-
   int actualIndex = 0;
   for (int index1 = 0; index1 < len$argnum_1; ++index1) {
     result[index1].reserve(len$argnum_2[index1]);
